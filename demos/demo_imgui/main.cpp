@@ -166,11 +166,26 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider
         auto& display = static_cast<ZepDisplay_ImGui&>(spEditor->GetDisplay());
 
         float fontPixelHeight = dpi_pixel_height_from_point_size(DemoFontPtSize, GetDisplayScale().y);
-        display.AddFont(ZepFontType::UI, fontPixelHeight, fontPath);
-        display.AddFont(ZepFontType::Text, fontPixelHeight, fontPath);
-        display.AddFont(ZepFontType::Heading1, fontPixelHeight * 2.0f, fontPath);
-        display.AddFont(ZepFontType::Heading2, fontPixelHeight * 1.5f, fontPath);
-        display.AddFont(ZepFontType::Heading3, fontPixelHeight * 1.25f, fontPath);
+
+        auto& io = ImGui::GetIO();
+        ImVector<ImWchar> ranges;
+        ImFontGlyphRangesBuilder builder;
+        builder.AddRanges(io.Fonts->GetGlyphRangesDefault()); // Add one of the default ranges
+        builder.AddRanges(io.Fonts->GetGlyphRangesCyrillic()); // Add one of the default ranges
+        builder.AddRanges(greek_range);
+        builder.BuildRanges(&ranges); // Build the final result (ordered ranges with all the unique characters submitted)
+    
+        ImFontConfig cfg;
+        cfg.OversampleH = 4;
+        cfg.OversampleV = 4;
+
+        auto pImFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(fontPath.c_str(), fontPixelHeight, &cfg, ranges.Data);
+
+        display.SetFont(ZepTextType::UI, std::make_shared<ZepFont_ImGui>(display, pImFont, fontPixelHeight));
+        display.SetFont(ZepTextType::Text, std::make_shared<ZepFont_ImGui>(display, pImFont, fontPixelHeight));
+        display.SetFont(ZepTextType::Heading1, std::make_shared<ZepFont_ImGui>(display, pImFont, fontPixelHeight));
+        display.SetFont(ZepTextType::Heading2, std::make_shared<ZepFont_ImGui>(display, pImFont, fontPixelHeight));
+        display.SetFont(ZepTextType::Heading3, std::make_shared<ZepFont_ImGui>(display, pImFont, fontPixelHeight));
 
         unsigned int flags = 0; // ImGuiFreeType::NoHinting;
         ImGuiFreeType::BuildFontAtlas(ImGui::GetIO().Fonts, flags);

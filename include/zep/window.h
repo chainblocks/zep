@@ -160,9 +160,11 @@ public:
     ZepTabWindow& GetTabWindow() const;
     NVec4f FilterActiveColor(const NVec4f& col, float atten = 1.0f);
 
+    void DirtyLayout();
+
 private:
-    void UpdateMarkers();
     void UpdateLayout(bool force = false);
+    void UpdateMarkers();
     void UpdateAirline();
     void UpdateScrollers();
     void UpdateLineSpans();

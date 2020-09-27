@@ -247,6 +247,7 @@ struct TabRegionTab : public Region
     ZepTabWindow* pTabWindow = nullptr;
 };
 
+
 class ZepEditor
 {
 public:
