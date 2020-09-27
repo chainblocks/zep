@@ -1734,14 +1734,14 @@ void ZepWindow::Display()
             for (int i = 0; i < (int)airline.leftBoxes.size(); i++)
             {
                 auto pText = (const uint8_t*)airline.leftBoxes[i].text.c_str();
-                auto textSize = display.GetTextSize(ZepFontType::Text, pText, pText + airline.leftBoxes[i].text.size());
+                auto textSize = display.GetTextSize(ZepFontType::UI, pText, pText + airline.leftBoxes[i].text.size());
                 textSize.x += border * 2;
 
                 auto col = airline.leftBoxes[i].background;
                 display.DrawRectFilled(NRectf(screenPosYPx, NVec2f(textSize.x + screenPosYPx.x, screenPosYPx.y + airHeight)), col);
 
                 NVec4f textCol = m_pBuffer->GetTheme().GetComplement(airline.leftBoxes[i].background, IsActiveWindow() ? NVec4f(0.0f) : NVec4f(.5f, .5f, .5f, 0.0f));
-                display.DrawChars(ZepFontType::Text, screenPosYPx + NVec2f(border, 0.0f), textCol, (const uint8_t*)(airline.leftBoxes[i].text.c_str()));
+                display.DrawChars(ZepFontType::UI, screenPosYPx + NVec2f(border, 0.0f), textCol, (const uint8_t*)(airline.leftBoxes[i].text.c_str()));
                 screenPosYPx.x += textSize.x;
             }
 

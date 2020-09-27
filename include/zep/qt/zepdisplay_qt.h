@@ -151,6 +151,16 @@ public:
             m_pPainter->setClipping(false);
         }
     }
+    
+    virtual void PushFont(ZepFontType type) override
+    {
+        // TODO
+        ZEP_UNUSED(type);
+    }
+
+    virtual void PopFont() override
+    {
+    }
 
 private:
     QPainter* m_pPainter = nullptr;

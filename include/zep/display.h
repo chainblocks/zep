@@ -42,6 +42,8 @@ public:
     virtual float GetFontPointSize(ZepFontType type) const = 0;
     virtual float GetFontHeightPixels(ZepFontType type) const = 0;
     virtual void SetFontPointSize(ZepFontType, float) { };
+    virtual void PushFont(ZepFontType font) = 0;
+    virtual void PopFont() = 0;
 
     virtual void DrawLine(const NVec2f& start, const NVec2f& end, const NVec4f& color = NVec4f(1.0f), float width = 1.0f) const = 0;
     virtual void DrawChars(ZepFontType type, const NVec2f& pos, const NVec4f& col, const uint8_t* text_begin, const uint8_t* text_end = nullptr) const = 0;
@@ -78,8 +80,9 @@ protected:
 class ZepDisplayNull : public ZepDisplay
 {
 public:
-    virtual NVec2f GetTextSize(ZepFontType, const uint8_t* pBegin, const uint8_t* pEnd = nullptr) const override
+    virtual NVec2f GetTextSize(ZepFontType type, const uint8_t* pBegin, const uint8_t* pEnd = nullptr) const override
     {
+        ZEP_UNUSED(type);
         return NVec2f(float(pEnd - pBegin), 10.0f);
     }
     virtual float GetFontPointSize(ZepFontType) const override
@@ -89,6 +92,14 @@ public:
     virtual float GetFontHeightPixels(ZepFontType) const override
     {
         return 10;
+    }
+    virtual void PushFont(ZepFontType) override
+    {
+
+    }
+    virtual void PopFont() override
+    {
+
     }
     virtual void DrawLine(const NVec2f& start, const NVec2f& end, const NVec4f& color = NVec4f(1.0f), float width = 1.0f) const override
     {
