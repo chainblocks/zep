@@ -34,6 +34,7 @@ public:
     ZepFont_Qt(ZepDisplay& display, const std::string& filePath, float pixelHeight)
         : ZepFont(display)
     {
+        SetPixelHeight(pixelHeight);
     }
 
     virtual void SetPixelHeight(float fVal) override
@@ -150,7 +151,8 @@ public:
     {
         if (m_fonts[(int)type] == nullptr)
         {
-            m_fonts[(int)type] = std::make_shared<ZepFont_Qt>(*this, "", 12);
+            QFontMetrics met(qApp->font());
+            m_fonts[(int)type] = std::make_shared<ZepFont_Qt>(*this, "", met.height());
         }
         return *m_fonts[(int)type];
     }

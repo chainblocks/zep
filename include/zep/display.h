@@ -54,8 +54,6 @@ public:
     virtual NVec2f GetCharSize(const uint8_t* pChar);
 
 protected:
-    float m_scale;
-    float m_pointSize;
     float m_pixelHeight;
     std::string m_filePath;
     bool m_charCacheDirty = true;

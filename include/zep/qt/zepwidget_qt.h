@@ -24,7 +24,7 @@ namespace Zep
 class ZepWidget_Qt : public QWidget, public IZepComponent
 {
 public:
-    ZepWidget_Qt(QWidget* pParent, const ZepPath& root, float fontSize)
+    ZepWidget_Qt(QWidget* pParent, const ZepPath& root, float fontPointSize)
         : QWidget(pParent)
     {
         setFocusPolicy ( Qt::StrongFocus );
@@ -38,8 +38,13 @@ public:
 #else
         m_spEditor->SetPixelScale(NVec2f(qRound(qApp->primaryScreen()->logicalDotsPerInchX() / 96.0f), qRound(qApp->primaryScreen()->logicalDotsPerInchY() / 96.0f)));
 #endif
-        // 14pt is about 5mm on the display
-        m_spEditor->GetDisplay().GetFont(ZepTextType::Text).SetPixelHeight(fontSize);
+        auto ptToPx = [](float pt, float dpi) {
+            return pt / 72 * dpi;
+        };
+        float dpi = QGuiApplication::primaryScreen()->logicalDotsPerInch();
+
+        // 14 points, about right for main text area
+        m_spEditor->GetDisplay().GetFont(ZepTextType::Text).SetPixelHeight(ptToPx(14, dpi));
 
         setFocusPolicy(Qt::FocusPolicy::StrongFocus);
         setMouseTracking(true);

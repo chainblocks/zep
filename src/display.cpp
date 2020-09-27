@@ -18,7 +18,6 @@ void ZepFont::InvalidateCharCache()
 
 void ZepFont::BuildCharCache()
 {
-
     const char chA = 'A';
     m_defaultCharSize = GetTextSize((const uint8_t*)&chA, (const uint8_t*)&chA + 1);
     for (int i = 0; i < 256; i++)
