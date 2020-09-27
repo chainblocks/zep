@@ -86,16 +86,28 @@ public:
     virtual void SetLayoutDirty(bool changed = true);
 
     virtual void SetFont(ZepTextType type, std::shared_ptr<ZepFont> spFont);
-    virtual ZepFont& GetFont(ZepTextType type);
+    virtual ZepFont& GetFont(ZepTextType type) = 0;
 
 protected:
     bool m_bRebuildLayout = false;
     std::array<std::shared_ptr<ZepFont>, (int)ZepTextType::Count> m_fonts;
+    std::shared_ptr<ZepFont> m_spDefaultFont;
 };
 
 class ZepFontNull : public ZepFont
 {
 public:
+    ZepFontNull(ZepDisplay& display)
+        : ZepFont(display)
+    {
+    
+    }
+
+    virtual void SetPixelHeight(float val)
+    {
+        ZEP_UNUSED(val);
+    }
+
     virtual NVec2f GetTextSize(const uint8_t* pBegin, const uint8_t* pEnd = nullptr) const override
     {
         return NVec2f(float(pEnd - pBegin), 10.0f);
@@ -130,6 +142,19 @@ public:
     virtual void SetClipRect(const NRectf& rc) override
     {
         (void)rc;
+    }
+    
+    virtual ZepFont& GetFont(ZepTextType type) override
+    {
+        if (m_fonts[(int)type] == nullptr)
+        {
+            if (m_spDefaultFont == nullptr)
+            {
+                m_spDefaultFont = std::make_shared<ZepFontNull>(*this);
+            }
+            return *m_spDefaultFont;
+        }
+        return *m_fonts[(int)type];
     }
 };
 

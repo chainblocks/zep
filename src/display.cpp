@@ -119,10 +119,4 @@ void ZepDisplay::SetFont(ZepTextType type, std::shared_ptr<ZepFont> spFont)
     m_fonts[(int)type] = spFont;
 }
 
-ZepFont& ZepDisplay::GetFont(ZepTextType type)
-{
-    assert(m_fonts[(int)type] != nullptr);
-    return *m_fonts[(int)type];
-}
-
 }

@@ -39,31 +39,21 @@ public:
     virtual void SetPixelHeight(float fVal) override
     {
         #ifdef __APPLE__
-        QFont font("Menlo");
-        // On mac passing point size ends up with a too small font.
-        // So we calculate the font size based on the pixel height, and using a
-        // scale of 1, since Qt is internally scaling anyway!
-        fVal = FontHeightPixelsFromPointSize(1.0f, fVal);
-        font.setStyleHint(QFont::Monospace);
-        font.setPixelSize(fVal);
+        m_font = QFont("Menlo");
         #else
-        QFont font("Consolas");
-        font.setStyleHint(QFont::Monospace);
-        font.setPointSizeF(fVal);
+        m_font = QFont("Consolas");
         #endif
-        qApp->setFont(font);
+        m_font.setStyleHint(QFont::Monospace);
+        m_font.setPixelSize(fVal);
         
-        //qDebug() << QApplication::font();
+        m_pixelHeight = fVal;
 
-        QFontMetrics met(qApp->font());
-        m_fontOffset = met.ascent();
-        m_pixelHeight = (float)met.height();
         InvalidateCharCache();
     }
 
     virtual NVec2f GetTextSize(const uint8_t* pBegin, const uint8_t* pEnd = nullptr) const override
     {
-        QFontMetrics met(qApp->font());
+        QFontMetrics met(m_font);
         if (pEnd == nullptr)
         {
             pEnd = pBegin + strlen((const char*)pBegin);
@@ -86,9 +76,14 @@ public:
         return NVec2f(rc.width(), rc.height());
     }
 
+    QFont& GetQtFont()
+    {
+        return m_font;
+    }
+
 private:
     float m_fontScale = 1.0f;
-    int m_fontOffset;
+    QFont m_font;
 };
 
 class ZepDisplay_Qt : public ZepDisplay
@@ -109,22 +104,14 @@ public:
     {
     }
 
-    float GetPointSize(ZepFont& font) const
-    {
-    }
-
-    float GetPixelHeight(ZepFont& font) const
-    {
-    }
-
     void DrawChars(ZepFont& font, const NVec2f& pos, const NVec4f& col, const uint8_t* text_begin, const uint8_t* text_end) const
     {
-        ZEP_UNUSED(font)
         if (text_end == nullptr)
         {
             text_end = text_begin + strlen((const char*)text_begin);
         }
 
+        m_pPainter->setFont(static_cast<ZepFont_Qt&>(font).GetQtFont());
         QPoint p0 = toQPoint(pos);
         m_pPainter->setPen(QColor::fromRgbF(col.x, col.y, col.z, col.w));
         m_pPainter->drawText(p0.x(), p0.y(), m_pPainter->viewport().width() - p0.x(), m_pPainter->viewport().height() - p0.y(), Qt::TextLongestVariant, QString::fromUtf8((char*)text_begin, text_end - text_begin));
@@ -145,7 +132,7 @@ public:
         m_pPainter->fillRect(QRect(start, end), QColor::fromRgbF(color.x, color.y, color.z, color.w));
     }
 
-    void SetClipRect(const NRectf& rc)
+    virtual void SetClipRect(const NRectf& rc) override
     {
         m_clipRect = rc;
         if (m_clipRect.Width() > 0)
@@ -157,6 +144,15 @@ public:
         {
             m_pPainter->setClipping(false);
         }
+    }
+    
+    virtual ZepFont& GetFont(ZepTextType type) override
+    {
+        if (m_fonts[(int)type] == nullptr)
+        {
+            m_fonts[(int)type] = std::make_shared<ZepFont_Qt>(*this, "", 12);
+        }
+        return *m_fonts[(int)type];
     }
 
 private:

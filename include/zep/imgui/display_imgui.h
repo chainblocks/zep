@@ -122,10 +122,20 @@ public:
         }
     }
 
-    void SetClipRect(const NRectf& rc)
+    virtual void SetClipRect(const NRectf& rc) override
     {
         m_clipRect = rc;
     }
+
+    virtual ZepFont& GetFont(ZepTextType type) override
+    {
+        if (m_fonts[(int)type] == nullptr)
+        {
+            m_fonts[(int)type] = std::make_shared<ZepFont_ImGui>(*this, ImGui::GetFont(), 12.0f);
+        }
+        return *m_fonts[(int)type];
+    }
+
 
 private:
     NRectf m_clipRect;
