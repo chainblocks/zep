@@ -119,7 +119,7 @@ void ZepWindow::UpdateScrollers()
         }
         else
         {
-            m_vScrollRegion->fixed_size = NVec2f(ScrollBarSize * GetEditor().GetPixelScale().x, 0.0f);
+            m_vScrollRegion->fixed_size = NVec2f(ScrollBarSize * GetEditor().GetDisplay().GetPixelScale().x, 0.0f);
         }
     }
 
@@ -163,13 +163,13 @@ void ZepWindow::UpdateAirline()
     m_airline.leftBoxes.push_back(AirBox{ std::to_string(cursor.x) + ":" + std::to_string(cursor.y), m_pBuffer->GetTheme().GetColor(ThemeColor::TabActive) });
 
 #ifdef _DEBUG
-    m_airline.leftBoxes.push_back(AirBox{ "(" + std::to_string(GetEditor().GetPixelScale().x) + "," + std::to_string(GetEditor().GetPixelScale().y) + ")", m_pBuffer->GetTheme().GetColor(ThemeColor::Error) });
+    m_airline.leftBoxes.push_back(AirBox{ "(" + std::to_string(GetEditor().GetDisplay().GetPixelScale().x) + "," + std::to_string(GetEditor().GetDisplay().GetPixelScale().y) + ")", m_pBuffer->GetTheme().GetColor(ThemeColor::Error) });
 #endif
 
     auto extra = GetBuffer().GetMode()->GetAirlines(*this);
 
     auto lastSize = m_airlineRegion->fixed_size;
-    m_airlineRegion->fixed_size = NVec2f(0.0f, GetEditor().GetDisplay().GetFont(ZepTextType::UI).GetPixelHeight() * (1 + extra.size()));
+    m_airlineRegion->fixed_size = NVec2f(0.0f, float(GetEditor().GetDisplay().GetFont(ZepTextType::UI).GetPixelHeight() * (1 + extra.size())));
     if (m_airlineRegion->fixed_size != lastSize)
     {
         m_layoutDirty = true;
@@ -246,7 +246,7 @@ void ZepWindow::SetDisplayRegion(const NRectf& region)
     m_layoutDirty = true;
     m_bufferRegion->rect = region;
 
-    m_airlineRegion->fixed_size = NVec2f(0.0f, GetEditor().GetDisplay().GetFont(ZepTextType::UI).GetPixelHeight());
+    m_airlineRegion->fixed_size = NVec2f(0.0f, float(GetEditor().GetDisplay().GetFont(ZepTextType::UI).GetPixelHeight()));
 
     m_defaultLineSize = GetEditor().GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight();
 }
@@ -434,7 +434,7 @@ void ZepWindow::UpdateLineSpans()
 
     auto& display = GetEditor().GetDisplay();
 
-    float textHeight = GetEditor().GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight();
+    int textHeight = GetEditor().GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight();
 
     auto widgetMarkers = m_pBuffer->GetRangeMarkers(RangeMarkerType::Widget);
     auto itrWidgetMarkers = widgetMarkers.begin();
@@ -473,7 +473,7 @@ void ZepWindow::UpdateLineSpans()
         lineInfo->yOffsetPx = bufferPosYPx;
         lineInfo->padding = topPadding;
         lineInfo->textSizePx.x = xOffset;
-        lineInfo->textSizePx.y = textHeight;
+        lineInfo->textSizePx.y = float(textHeight);
         lineInfo->isSplitContinuation = false;
 
         auto inlineMargins = DPI_VEC2(GetEditor().GetConfig().inlineWidgetMargins);
@@ -531,7 +531,7 @@ void ZepWindow::UpdateLineSpans()
                     lineInfo->bufferLineNumber = bufferLine;
                     lineInfo->yOffsetPx = bufferPosYPx;
                     lineInfo->padding = topPadding;
-                    lineInfo->textSizePx.y = textHeight;
+                    lineInfo->textSizePx.y = float(textHeight);
                     lineInfo->textSizePx.x = xOffset;
                     lineInfo->isSplitContinuation = true;
 
@@ -1753,7 +1753,7 @@ void ZepWindow::Display()
             }
 
             // Clip to the remaining space
-            auto clipRect = NRectf(screenPosYPx.x, screenPosYPx.y, m_airlineRegion->rect.Right() - screenPosYPx.x, airHeight);
+            auto clipRect = NRectf(screenPosYPx.x, screenPosYPx.y, m_airlineRegion->rect.Right() - screenPosYPx.x, float(airHeight));
             if (clipRect.Width() > 0 && clipRect.Height() > 0)
             {
                 display.SetClipRect(clipRect);
@@ -1773,7 +1773,7 @@ void ZepWindow::Display()
                     textSize.x += border * 2;
 
                     auto col = airline.rightBoxes[i].background;
-                    display.DrawRectFilled(NRectf(screenPosYPx, NVec2f(textSize.x + screenPosYPx.x, screenPosYPx.y + airHeight)), col);
+                    display.DrawRectFilled(NRectf(screenPosYPx, NVec2f(textSize.x + screenPosYPx.x, screenPosYPx.y + float(airHeight))), col);
 
                     NVec4f textCol = m_pBuffer->GetTheme().GetComplement(airline.rightBoxes[i].background, IsActiveWindow() ? NVec4f(0.0f) : NVec4f(.5f, .5f, .5f, 0.0f));
                     display.DrawChars(uiFont, screenPosYPx + NVec2f(border, 0.0f), textCol, (const uint8_t*)(airline.rightBoxes[i].text.c_str()));

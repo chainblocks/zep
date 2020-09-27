@@ -29,15 +29,16 @@ public:
     {
         setFocusPolicy ( Qt::StrongFocus );
 
-        m_spEditor = std::make_unique<ZepEditor>(new ZepDisplay_Qt(), root);
-        m_spEditor->RegisterCallback(this);
-
         // On Apple/Qt, we scale 1.0 because the OS and Qt take care of the details
 #ifdef __APPLE__
-        m_spEditor->SetPixelScale(NVec2f(1.0f));
+        NVec2f pixelScale(1.0f);
 #else
-        m_spEditor->SetPixelScale(NVec2f(qRound(qApp->primaryScreen()->logicalDotsPerInchX() / 96.0f), qRound(qApp->primaryScreen()->logicalDotsPerInchY() / 96.0f)));
+        NVec2f pixelScale(NVec2f(qRound(qApp->primaryScreen()->logicalDotsPerInchX() / 96.0f), qRound(qApp->primaryScreen()->logicalDotsPerInchY() / 96.0f)));
 #endif
+
+        m_spEditor = std::make_unique<ZepEditor>(new ZepDisplay_Qt(pixelScale), root);
+        m_spEditor->RegisterCallback(this);
+
         auto ptToPx = [](float pt, float dpi) {
             return pt / 72 * dpi;
         };

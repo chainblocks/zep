@@ -256,7 +256,7 @@ private:
     NVec2f m_textSizePx;                    // The calculated size of the buffer text, containing just the text
     NVec2i m_visibleLineIndices = {0, 0};   // Index of the line spans that are visible 
     long m_maxDisplayLines = 0;
-    float m_defaultLineSize = 0;
+    int m_defaultLineSize = 0;
     float m_xPad = 0.0f;
 
     // Tooltips

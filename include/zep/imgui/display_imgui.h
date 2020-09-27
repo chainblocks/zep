@@ -24,14 +24,14 @@ static ImWchar greek_range[] = { 0x300, 0x52F, 0x1f00, 0x1fff, 0, 0 };
 class ZepFont_ImGui : public ZepFont
 {
 public:
-    ZepFont_ImGui(ZepDisplay& display, ImFont* pFont, float pixelHeight)
+    ZepFont_ImGui(ZepDisplay& display, ImFont* pFont, int pixelHeight)
         : ZepFont(display)
         , m_pFont(pFont)
     {
         SetPixelHeight(pixelHeight);
     }
 
-    virtual void SetPixelHeight(float pixelHeight) override
+    virtual void SetPixelHeight(int pixelHeight) override
     {
         InvalidateCharCache();
         m_pixelHeight = pixelHeight;
@@ -42,12 +42,12 @@ public:
         // This is the code from ImGui internals; we can't call GetTextSize, because it doesn't return the correct 'advance' formula, which we
         // need as we draw one character at a time...
         const float font_size = m_pFont->FontSize;
-        ImVec2 text_size = m_pFont->CalcTextSizeA(GetPixelHeight(), FLT_MAX, FLT_MAX, (const char*)pBegin, (const char*)pEnd, NULL);
+        ImVec2 text_size = m_pFont->CalcTextSizeA(float(GetPixelHeight()), FLT_MAX, FLT_MAX, (const char*)pBegin, (const char*)pEnd, NULL);
         if (text_size.x == 0.0)
         {
             // Make invalid characters a default fixed_size
             const char chDefault = 'A';
-            text_size = m_pFont->CalcTextSizeA(GetPixelHeight(), FLT_MAX, FLT_MAX, &chDefault, (&chDefault + 1), NULL);
+            text_size = m_pFont->CalcTextSizeA(float(GetPixelHeight()), FLT_MAX, FLT_MAX, &chDefault, (&chDefault + 1), NULL);
         }
 
         return toNVec2f(text_size);
@@ -66,7 +66,8 @@ private:
 class ZepDisplay_ImGui : public ZepDisplay
 {
 public:
-    ZepDisplay_ImGui()
+    ZepDisplay_ImGui(const NVec2f& pixelScale)
+        : ZepDisplay(pixelScale)
     {
     }
 
@@ -80,12 +81,12 @@ public:
         }
         if (m_clipRect.Width() == 0)
         {
-            drawList->AddText(imFont, font.GetPixelHeight(), toImVec2(pos), ToPackedABGR(col), (const char*)text_begin, (const char*)text_end);
+            drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2(pos), ToPackedABGR(col), (const char*)text_begin, (const char*)text_end);
         }
         else
         {
             drawList->PushClipRect(toImVec2(m_clipRect.topLeftPx), toImVec2(m_clipRect.bottomRightPx));
-            drawList->AddText(imFont, font.GetPixelHeight(), toImVec2(pos), ToPackedABGR(col), (const char*)text_begin, (const char*)text_end);
+            drawList->AddText(imFont, float(font.GetPixelHeight()), toImVec2(pos), ToPackedABGR(col), (const char*)text_begin, (const char*)text_end);
             drawList->PopClipRect();
         }
     }
@@ -131,7 +132,7 @@ public:
     {
         if (m_fonts[(int)type] == nullptr)
         {
-            m_fonts[(int)type] = std::make_shared<ZepFont_ImGui>(*this, ImGui::GetFont(), 12.0f);
+            m_fonts[(int)type] = std::make_shared<ZepFont_ImGui>(*this, ImGui::GetFont(), int(16.0f * GetPixelScale().y));
         }
         return *m_fonts[(int)type];
     }

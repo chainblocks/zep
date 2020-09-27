@@ -31,13 +31,13 @@ inline QPoint toQPoint(const NVec2f& im)
 class ZepFont_Qt : public ZepFont
 {
 public:
-    ZepFont_Qt(ZepDisplay& display, const std::string& filePath, float pixelHeight)
+    ZepFont_Qt(ZepDisplay& display, const std::string& filePath, int pixelHeight)
         : ZepFont(display)
     {
         SetPixelHeight(pixelHeight);
     }
 
-    virtual void SetPixelHeight(float fVal) override
+    virtual void SetPixelHeight(int val) override
     {
         #ifdef __APPLE__
         m_font = QFont("Menlo");
@@ -45,9 +45,11 @@ public:
         m_font = QFont("Consolas");
         #endif
         m_font.setStyleHint(QFont::Monospace);
-        m_font.setPixelSize(fVal);
-        
-        m_pixelHeight = fVal;
+        m_font.setPixelSize(val);
+        m_pixelHeight = val;
+
+        QFontMetrics met(m_font);
+        m_descent = met.descent();
 
         InvalidateCharCache();
     }
@@ -74,7 +76,7 @@ public:
             rc = met.size(Qt::TextIncludeTrailingSpaces | Qt::TextLongestVariant, QString("A"));
 
         }
-        return NVec2f(rc.width(), rc.height());
+        return NVec2f(rc.width(), m_pixelHeight);// rc.height());
     }
 
     QFont& GetQtFont()
@@ -82,8 +84,14 @@ public:
         return m_font;
     }
 
+    float Descent() const
+    {
+        return m_descent;
+    }
+
 private:
     float m_fontScale = 1.0f;
+    float m_descent = 0.0f;
     QFont m_font;
 };
 
@@ -92,17 +100,18 @@ class ZepDisplay_Qt : public ZepDisplay
 public:
     using TParent = ZepDisplay;
 
-    void SetPainter(QPainter* pPainter)
-    {
-        m_pPainter = pPainter;
-    }
-
-    ZepDisplay_Qt()
+    ZepDisplay_Qt(const NVec2f& pixelScale)
+        : ZepDisplay(pixelScale)
     {
     }
 
     ~ZepDisplay_Qt()
     {
+    }
+
+    void SetPainter(QPainter* pPainter)
+    {
+        m_pPainter = pPainter;
     }
 
     void DrawChars(ZepFont& font, const NVec2f& pos, const NVec4f& col, const uint8_t* text_begin, const uint8_t* text_end) const
@@ -111,11 +120,13 @@ public:
         {
             text_end = text_begin + strlen((const char*)text_begin);
         }
-
-        m_pPainter->setFont(static_cast<ZepFont_Qt&>(font).GetQtFont());
+        auto& qtFont = static_cast<ZepFont_Qt&>(font);
+        m_pPainter->setFont(qtFont.GetQtFont());
         QPoint p0 = toQPoint(pos);
         m_pPainter->setPen(QColor::fromRgbF(col.x, col.y, col.z, col.w));
-        m_pPainter->drawText(p0.x(), p0.y(), m_pPainter->viewport().width() - p0.x(), m_pPainter->viewport().height() - p0.y(), Qt::TextLongestVariant, QString::fromUtf8((char*)text_begin, text_end - text_begin));
+
+        // Note: this logic works, but is suspect; I had trouble getting the font to align with where it should be placed!
+        m_pPainter->drawText(p0.x(), p0.y() + font.GetPixelHeight() - qtFont.Descent() + 1, QString::fromUtf8((char*)text_begin, text_end - text_begin));
     }
 
     void DrawLine(const NVec2f& start, const NVec2f& end, const NVec4f& color, float width) const

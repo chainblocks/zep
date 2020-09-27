@@ -1259,16 +1259,6 @@ const NVec2f ZepEditor::GetMousePos() const
     return m_mousePos;
 }
 
-void ZepEditor::SetPixelScale(const NVec2f& scale)
-{
-    m_pixelScale = scale;
-}
-
-NVec2f ZepEditor::GetPixelScale() const
-{
-    return m_pixelScale;
-}
-
 uint32_t ZepEditor::GetFlags() const
 {
     return m_flags;

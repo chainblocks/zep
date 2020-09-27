@@ -101,12 +101,16 @@ void main()
 
 std::string startupFile;
 
-Zep::NVec2f GetDisplayScale()
+Zep::NVec2f GetPixelScale()
 {
     float ddpi = 0.0f;
     float hdpi = 0.0f;
     float vdpi = 0.0f;
-    auto res = SDL_GetDisplayDPI(0, &ddpi, &hdpi, &vdpi);
+
+    auto window = SDL_GL_GetCurrentWindow();
+    auto index = window ? SDL_GetWindowDisplayIndex(window) : 0;
+
+    auto res = SDL_GetDisplayDPI(index, &ddpi, &hdpi, &vdpi);
     if (res == 0 && hdpi != 0)
     {
         return Zep::NVec2f(hdpi, vdpi) / 96.0f;
@@ -156,7 +160,7 @@ bool ReadCommandLine(int argc, char** argv, int& exitCode)
 struct ZepContainerImGui : public IZepComponent, public IZepReplProvider
 {
     ZepContainerImGui(const std::string& startupFilePath, const std::string& configPath)
-        : spEditor(std::make_unique<ZepEditor_ImGui>(configPath))
+        : spEditor(std::make_unique<ZepEditor_ImGui>(configPath, GetPixelScale()))
     {
         chibi_init(scheme, SDL_GetBasePath());
 
@@ -165,7 +169,7 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider
         auto fontPath = std::string(SDL_GetBasePath()) + "Cousine-Regular.ttf";
         auto& display = static_cast<ZepDisplay_ImGui&>(spEditor->GetDisplay());
 
-        float fontPixelHeight = dpi_pixel_height_from_point_size(DemoFontPtSize, GetDisplayScale().y);
+        int fontPixelHeight = (int)dpi_pixel_height_from_point_size(DemoFontPtSize, GetPixelScale().y);
 
         auto& io = ImGui::GetIO();
         ImVector<ImWchar> ranges;
@@ -179,7 +183,7 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider
         cfg.OversampleH = 4;
         cfg.OversampleV = 4;
 
-        auto pImFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(fontPath.c_str(), fontPixelHeight, &cfg, ranges.Data);
+        auto pImFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(fontPath.c_str(), float(fontPixelHeight), &cfg, ranges.Data);
 
         display.SetFont(ZepTextType::UI, std::make_shared<ZepFont_ImGui>(display, pImFont, fontPixelHeight));
         display.SetFont(ZepTextType::Text, std::make_shared<ZepFont_ImGui>(display, pImFont, fontPixelHeight));
@@ -191,7 +195,6 @@ struct ZepContainerImGui : public IZepComponent, public IZepReplProvider
         ImGuiFreeType::BuildFontAtlas(ImGui::GetIO().Fonts, flags);
 
         spEditor->RegisterCallback(this);
-        spEditor->SetPixelScale(GetDisplayScale());
 
         ZepMode_Orca::Register(*spEditor);
 
@@ -472,7 +475,7 @@ int main(int argc, char** argv)
     // Setup style
     ImGui::StyleColorsDark();
 
-    ZLOG(INFO, "DPI Scale: " << MUtils::NVec2f(GetDisplayScale().x, GetDisplayScale().y));
+    ZLOG(INFO, "DPI Scale: " << MUtils::NVec2f(GetPixelScale().x, GetPixelScale().y));
 
     bool show_demo_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);

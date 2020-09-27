@@ -39,10 +39,10 @@ public:
     }
    
     // Implemented in API specific ways
-    virtual void SetPixelHeight(float fVal) = 0;
+    virtual void SetPixelHeight(int height) = 0;
     virtual NVec2f GetTextSize(const uint8_t* pBegin, const uint8_t* pEnd = nullptr) const = 0;
 
-    virtual float GetPixelHeight() const
+    virtual int GetPixelHeight() const
     {
         return m_pixelHeight;
     }
@@ -54,7 +54,7 @@ public:
     virtual NVec2f GetCharSize(const uint8_t* pChar);
 
 protected:
-    float m_pixelHeight;
+    int m_pixelHeight;
     std::string m_filePath;
     bool m_charCacheDirty = true;
     std::unordered_map<uint32_t, NVec2f> m_charCache;
@@ -69,7 +69,7 @@ class ZepDisplay
 {
 public:
     virtual ~ZepDisplay(){};
-    ZepDisplay();
+    ZepDisplay(const NVec2f& pixelScale);
 
     // Renderer specific overrides
     // Implement these to draw the buffer using whichever system you prefer
@@ -85,11 +85,13 @@ public:
 
     virtual void SetFont(ZepTextType type, std::shared_ptr<ZepFont> spFont);
     virtual ZepFont& GetFont(ZepTextType type) = 0;
+    const NVec2f& GetPixelScale() const;
 
 protected:
     bool m_bRebuildLayout = false;
     std::array<std::shared_ptr<ZepFont>, (int)ZepTextType::Count> m_fonts;
     std::shared_ptr<ZepFont> m_spDefaultFont;
+    NVec2f m_pixelScale;
 };
 
 class ZepFontNull : public ZepFont
@@ -101,7 +103,7 @@ public:
     
     }
 
-    virtual void SetPixelHeight(float val)
+    virtual void SetPixelHeight(int val)
     {
         ZEP_UNUSED(val);
     }
@@ -118,6 +120,12 @@ public:
 class ZepDisplayNull : public ZepDisplay
 {
 public:
+    ZepDisplayNull(const NVec2f& pixelScale)
+        : ZepDisplay(pixelScale)
+    {
+    
+    }
+
     virtual void DrawLine(const NVec2f& start, const NVec2f& end, const NVec4f& color = NVec4f(1.0f), float width = 1.0f) const override
     {
         (void)start;
@@ -154,6 +162,7 @@ public:
         }
         return *m_fonts[(int)type];
     }
+
 };
 
 } // namespace Zep
