@@ -23,6 +23,7 @@ struct LineCharInfo
     GlyphIterator iterator;
 };
 
+class ZepFont;
 // Line information, calculated during display update.
 // A collection of spans that show split lines on the display
 struct SpanInfo
@@ -36,6 +37,7 @@ struct SpanInfo
     NVec2f padding = NVec2f(1.0f, 1.0f);           // Padding above and below the line
     bool isSplitContinuation = false;
     NVec2f lineWidgetHeights;
+    ZepFont* pFont = nullptr;
 
     float FullLineHeightPx() const
     {

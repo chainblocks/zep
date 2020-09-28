@@ -432,9 +432,7 @@ void ZepWindow::UpdateLineSpans()
     std::for_each(m_windowLines.begin(), m_windowLines.end(), [](SpanInfo* pInfo) { delete pInfo; });
     m_windowLines.clear();
 
-    auto& display = GetEditor().GetDisplay();
-
-    int textHeight = GetEditor().GetDisplay().GetFont(ZepTextType::Text).GetPixelHeight();
+    //auto& display = GetEditor().GetDisplay();
 
     auto widgetMarkers = m_pBuffer->GetRangeMarkers(RangeMarkerType::Widget);
     auto itrWidgetMarkers = widgetMarkers.begin();
@@ -459,12 +457,17 @@ void ZepWindow::UpdateLineSpans()
 
         // Move the line down by the height of the widget
         bufferPosYPx += lineWidgetHeight.x;
+  
+        ;
+        auto& font = (lineByteRange.second > lineByteRange.first) && textBuffer[lineByteRange.first] == '#' ? GetEditor().GetDisplay().GetFont(ZepTextType::Heading1) : GetEditor().GetDisplay().GetFont(ZepTextType::Text);
+        int textHeight = font.GetPixelHeight();
 
         // text line height is top/bottom pad
         float fullLineHeight = textHeight + topPadding.x + topPadding.y;
 
         // Start a new line
         SpanInfo* lineInfo = new SpanInfo();
+        lineInfo->pFont = &font;
         lineInfo->lineWidgetHeights = lineWidgetHeight;
         lineInfo->bufferLineNumber = bufferLine;
         lineInfo->spanLineIndex = spanLine;
@@ -483,7 +486,7 @@ void ZepWindow::UpdateLineSpans()
         for (auto ch = lineByteRange.first; ch < lineByteRange.second; ch += utf8_codepoint_length(textBuffer[ch]))
         {
             const uint8_t* pCh = &textBuffer[ch];
-            const auto textSize = display.GetFont(ZepTextType::Text).GetCharSize(pCh);
+            const auto textSize = font.GetCharSize(pCh);
 
             // Skip to current marker
             while (itrWidgetMarkers != widgetMarkers.end() && itrWidgetMarkers->first < ch)
@@ -600,7 +603,7 @@ void ZepWindow::UpdateLineSpans()
             // The gap buffer will get in the way; so need to be careful to use [] or an iterator
             // GetCharSize is cached for speed on debug builds.
             info.iterator = GlyphIterator(m_pBuffer, ch);
-            info.size = display.GetFont(ZepTextType::Text).GetCharSize(&textBuffer[ch]);
+            info.size = line->pFont->GetCharSize(&textBuffer[ch]);
             line->lineCodePoints.push_back(info);
             ch += utf8_codepoint_length(textBuffer[ch]);
             points++;
