@@ -163,7 +163,20 @@ public:
         if (m_fonts[(int)type] == nullptr)
         {
             QFontMetrics met(qApp->font());
-            m_fonts[(int)type] = std::make_shared<ZepFont_Qt>(*this, "", met.height());
+            auto height = met.height();
+            switch (type)
+            {
+            case ZepTextType::Heading1:
+                height *= 1.75f;
+                break;
+            case ZepTextType::Heading2:
+                height *= 1.5f;
+                break;
+            case ZepTextType::Heading3:
+                height *= 1.25f;
+                break;
+            }
+            m_fonts[(int)type] = std::make_shared<ZepFont_Qt>(*this, "", height);
         }
         return *m_fonts[(int)type];
     }

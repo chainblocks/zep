@@ -427,6 +427,8 @@ void ZepWindow::UpdateLineSpans()
     float bufferPosYPx = 0.0f;
     float xOffset = m_xPad;
 
+    bool isMarkdown = m_pBuffer->GetFileExtension() == ".md";
+
     // Nuke the existing spans
     // In future we can in-place modify for speed
     std::for_each(m_windowLines.begin(), m_windowLines.end(), [](SpanInfo* pInfo) { delete pInfo; });
@@ -457,9 +459,38 @@ void ZepWindow::UpdateLineSpans()
 
         // Move the line down by the height of the widget
         bufferPosYPx += lineWidgetHeight.x;
-  
-        ;
-        auto& font = (lineByteRange.second > lineByteRange.first) && textBuffer[lineByteRange.first] == '#' ? GetEditor().GetDisplay().GetFont(ZepTextType::Heading1) : GetEditor().GetDisplay().GetFont(ZepTextType::Text);
+
+        // TODO: Find a clean way to do this extra work during layout for extensions that need it
+        ZepTextType type = ZepTextType::Text;
+        if (isMarkdown)
+        {
+            // Markdown experiment
+            uint32_t headerCount = 0;
+            for (auto ch = lineByteRange.first; ch < lineByteRange.second; ch += utf8_codepoint_length(textBuffer[ch]))
+            {
+                if (textBuffer[ch] != '#')
+                    break;
+                headerCount++;
+            }
+
+            switch (headerCount)
+            {
+            case 0:
+                break;
+            case 1:
+                type = ZepTextType::Heading1;
+                break;
+            case 2:
+                type = ZepTextType::Heading2;
+                break;
+            case 3:
+                type = ZepTextType::Heading3;
+                break;
+            }
+            // !Markdown experiment
+        }
+
+        auto& font = GetEditor().GetDisplay().GetFont(type);
         int textHeight = font.GetPixelHeight();
 
         // text line height is top/bottom pad
@@ -537,6 +568,7 @@ void ZepWindow::UpdateLineSpans()
                     lineInfo->textSizePx.y = float(textHeight);
                     lineInfo->textSizePx.x = xOffset;
                     lineInfo->isSplitContinuation = true;
+                    lineInfo->pFont = &font;
 
                     xOffset = m_xPad;
                 }
@@ -992,7 +1024,9 @@ void ZepWindow::DisplayLineNumbers()
                 strNum = std::to_string(lineInfo.bufferLineNumber);
             }
 
-            auto textSize = display.GetFont(ZepTextType::Text).GetTextSize((const uint8_t*)strNum.c_str(), (const uint8_t*)(strNum.c_str() + strNum.size()));
+            auto& numFont = display.GetFont(ZepTextType::UI);
+            auto textSize = numFont.GetTextSize((const uint8_t*)strNum.c_str(), (const uint8_t*)(strNum.c_str() + strNum.size()));
+            auto lineCenter = (lineInfo.FullLineHeightPx() * .5f) + lineInfo.yOffsetPx;
 
             auto digitCol = m_pBuffer->GetTheme().GetColor(ThemeColor::LineNumber);
             if (lineInfo.BufferCursorInside(m_bufferCursor))
@@ -1004,7 +1038,11 @@ void ZepWindow::DisplayLineNumbers()
             {
                 // Numbers
                 display.SetClipRect(m_numberRegion->rect);
-                display.DrawChars(display.GetFont(ZepTextType::Text), NVec2f(m_numberRegion->rect.bottomRightPx.x - textSize.x, ToWindowY(lineInfo.yOffsetPx + lineInfo.padding.x)), digitCol, (const uint8_t*)strNum.c_str(), (const uint8_t*)(strNum.c_str() + strNum.size()));
+                display.DrawChars(numFont,
+                    NVec2f(m_numberRegion->rect.bottomRightPx.x - textSize.x,
+                        ToWindowY(lineCenter - numFont.GetPixelHeight() * .5f)),
+                        digitCol,
+                        (const uint8_t*)strNum.c_str(), (const uint8_t*)(strNum.c_str() + strNum.size()));
             }
 
             if (m_indicatorRegion->rect.Width() > 0)
@@ -1194,7 +1232,7 @@ bool ZepWindow::DisplayLine(SpanInfo& lineInfo, int displayPass)
 
                 if (special == SpecialChar::None || special == SpecialChar::Hidden)
                 {
-                    display.DrawChars(display.GetFont(ZepTextType::Text), NVec2f(cp.pos.x, ToWindowY(lineInfo.yOffsetPx + lineInfo.padding.x)), col, pCh, pEnd);
+                    display.DrawChars(*lineInfo.pFont, NVec2f(cp.pos.x, ToWindowY(lineInfo.yOffsetPx + lineInfo.padding.x)), col, pCh, pEnd);
                 }
                 else if (special == SpecialChar::Tab)
                 {
