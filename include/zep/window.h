@@ -32,7 +32,7 @@ struct SpanInfo
     std::vector<LineCharInfo> lineCodePoints;      // Codepoints
     long bufferLineNumber = 0;                     // Line in the original buffer, not the screen line
     float yOffsetPx = 0.0f;                        // Position in the buffer in pixels, if the screen was as big as the buffer.
-    NVec2f textSizePx = NVec2f(0.0f);              // Pixel size of the text 
+    NVec2f lineTextSizePx = NVec2f(0.0f);          // Pixel size of the text 
     int spanLineIndex = 0;                         // The index of this line in spans; might be more than buffer index
     NVec2f padding = NVec2f(1.0f, 1.0f);           // Padding above and below the line
     bool isSplitContinuation = false;
@@ -41,7 +41,7 @@ struct SpanInfo
 
     float FullLineHeightPx() const
     {
-        return padding.x + padding.y + textSizePx.y;
+        return padding.x + padding.y + lineTextSizePx.y;
     }
 
     // The byte length, not code point length

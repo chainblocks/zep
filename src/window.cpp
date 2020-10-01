@@ -464,8 +464,8 @@ void ZepWindow::UpdateLineSpans()
         ZepTextType type = ZepTextType::Text;
         if (isMarkdown)
         {
-            // Markdown experiment
             uint32_t headerCount = 0;
+            // Markdown experiment
             for (auto ch = lineByteRange.first; ch < lineByteRange.second; ch += utf8_codepoint_length(textBuffer[ch]))
             {
                 if (textBuffer[ch] != '#')
@@ -506,8 +506,8 @@ void ZepWindow::UpdateLineSpans()
         lineInfo->lineByteRange.second = lineByteRange.first;
         lineInfo->yOffsetPx = bufferPosYPx;
         lineInfo->padding = topPadding;
-        lineInfo->textSizePx.x = xOffset;
-        lineInfo->textSizePx.y = float(textHeight);
+        lineInfo->lineTextSizePx.x = xOffset;
+        lineInfo->lineTextSizePx.y = float(textHeight);
         lineInfo->isSplitContinuation = false;
 
         auto inlineMargins = DPI_VEC2(GetEditor().GetConfig().inlineWidgetMargins);
@@ -517,8 +517,8 @@ void ZepWindow::UpdateLineSpans()
         for (auto ch = lineByteRange.first; ch < lineByteRange.second; ch += utf8_codepoint_length(textBuffer[ch]))
         {
             const uint8_t* pCh = &textBuffer[ch];
-            const auto textSize = font.GetCharSize(pCh);
-
+            auto textSize = font.GetCharSize(pCh);
+            
             // Skip to current marker
             while (itrWidgetMarkers != widgetMarkers.end() && itrWidgetMarkers->first < ch)
             {
@@ -534,7 +534,7 @@ void ZepWindow::UpdateLineSpans()
                         pWidget->inlineSize.x = inlineMargins.x * 2 + textHeight;
                         xOffset += pWidget->inlineSize.x;
                     }
-                    lineInfo->textSizePx.x = xOffset;
+                    lineInfo->lineTextSizePx.x = xOffset;
                 }
             }
 
@@ -546,7 +546,7 @@ void ZepWindow::UpdateLineSpans()
                 {
                     // Remember the offset beyond the end of the line
                     lineInfo->lineByteRange.second = ch;
-                    lineInfo->textSizePx.x = xOffset;
+                    lineInfo->lineTextSizePx.x = xOffset;
                     m_windowLines.push_back(lineInfo);
 
                     // Next line
@@ -565,8 +565,8 @@ void ZepWindow::UpdateLineSpans()
                     lineInfo->bufferLineNumber = bufferLine;
                     lineInfo->yOffsetPx = bufferPosYPx;
                     lineInfo->padding = topPadding;
-                    lineInfo->textSizePx.y = float(textHeight);
-                    lineInfo->textSizePx.x = xOffset;
+                    lineInfo->lineTextSizePx.y = float(textHeight);
+                    lineInfo->lineTextSizePx.x = xOffset;
                     lineInfo->isSplitContinuation = true;
                     lineInfo->pFont = &font;
 
@@ -594,7 +594,7 @@ void ZepWindow::UpdateLineSpans()
 
             lineInfo->yOffsetPx = bufferPosYPx;
             lineInfo->lineByteRange.second = ch + utf8_codepoint_length(textBuffer[ch]);
-            lineInfo->textSizePx.x = std::max(lineInfo->textSizePx.x, xOffset);
+            lineInfo->lineTextSizePx.x = std::max(lineInfo->lineTextSizePx.x, xOffset);
         }
 
         // Complete the line
@@ -614,7 +614,7 @@ void ZepWindow::UpdateLineSpans()
         lineInfo->lineByteRange.first = 0;
         lineInfo->lineByteRange.second = 0;
         lineInfo->padding = NVec2f(0.0f);
-        lineInfo->textSizePx = NVec2f(0.0f);
+        lineInfo->lineTextSizePx = NVec2f(0.0f);
         lineInfo->bufferLineNumber = 0;
         m_windowLines.push_back(lineInfo);
     }
@@ -656,7 +656,7 @@ void ZepWindow::UpdateVisibleLineRange()
     for (long line = 0; line < long(m_windowLines.size()); line++)
     {
         auto& windowLine = *m_windowLines[line];
-        m_textSizePx.x = std::max(m_textSizePx.x, windowLine.textSizePx.x);
+        m_textSizePx.x = std::max(m_textSizePx.x, windowLine.lineTextSizePx.x);
 
         if ((windowLine.yOffsetPx + windowLine.FullLineHeightPx()) <= m_textOffsetPx)
         {
@@ -1469,7 +1469,7 @@ NVec2f ZepWindow::GetSpanPixelRange(SpanInfo& span) const
 {
     // Need to take account of the text rect offset
     return NVec2f(m_textRegion->rect.Left(),
-        span.textSizePx.x + m_textRegion->rect.Left());
+        span.lineTextSizePx.x + m_textRegion->rect.Left());
 }
 
 void ZepWindow::GetCursorInfo(NVec2f& pos, NVec2f& size)
@@ -1507,7 +1507,7 @@ void ZepWindow::GetCursorInfo(NVec2f& pos, NVec2f& size)
 
     pos = NVec2f(xPos, cursorBufferLine.yOffsetPx + cursorBufferLine.padding.x - m_textOffsetPx + m_textRegion->rect.topLeftPx.y);
     size = cursorSize;
-    size.y = cursorBufferLine.textSizePx.y;
+    size.y = cursorBufferLine.lineTextSizePx.y;
 }
 
 void ZepWindow::PlaceToolTip(const NVec2f& pos, ToolTipPos location, uint32_t lineGap, const std::shared_ptr<RangeMarker> spMarker)
