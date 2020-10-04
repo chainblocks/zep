@@ -38,8 +38,9 @@ ThemeColor RangeMarker::GetHighlightColor(const GlyphIterator& itr) const
     return m_highlightColor;
 }
 
-float RangeMarker::GetAlpha(GlyphIterator) const
+float RangeMarker::GetAlpha(const GlyphIterator& itr) const
 {
+    ZEP_UNUSED(itr);
     return alpha;
 }
 

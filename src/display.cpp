@@ -26,7 +26,7 @@ void ZepFont::BuildCharCache()
         m_charCacheASCII[i] = GetTextSize(&ch, &ch + 1);
     }
     m_charCacheDirty = false;
-    
+
     m_dotSize = m_defaultCharSize / 8.0f;
     m_dotSize.x = std::min(m_dotSize.x, m_dotSize.y);
     m_dotSize.y = std::min(m_dotSize.x, m_dotSize.y);
@@ -40,7 +40,7 @@ const NVec2f& ZepFont::GetDefaultCharSize()
     {
         BuildCharCache();
     }
-    
+
     return m_defaultCharSize;
 }
 
@@ -60,7 +60,7 @@ NVec2f ZepFont::GetCharSize(const uint8_t* pCh)
     {
         return m_charCacheASCII[*pCh];
     }
- 
+
     auto ch32 = utf8::unchecked::next(pCh);
 
     auto itr = m_charCache.find((uint32_t)ch32);
@@ -68,7 +68,7 @@ NVec2f ZepFont::GetCharSize(const uint8_t* pCh)
     {
         return itr->second;
     }
-     
+
     auto sz = GetTextSize(pCh, pCh + utf8_codepoint_length(*pCh));
     m_charCache[(uint32_t)ch32] = sz;
 
@@ -95,7 +95,6 @@ uint32_t ZepDisplay::GetCodePointCount(const uint8_t* pCh, const uint8_t* pEnd) 
     return count;
 }
 
-    
 void ZepDisplay::DrawRect(const NRectf& rc, const NVec4f& col) const
 {
     DrawLine(rc.topLeftPx, rc.BottomLeft(), col);
@@ -124,4 +123,50 @@ const NVec2f& ZepDisplay::GetPixelScale() const
     return m_pixelScale;
 }
 
+void ZepDisplay::Bigger()
+{
+    for (int i = 0; i < (int)m_fonts.size(); i++)
+    {
+        if (m_fonts[i] != nullptr)
+        {
+            switch ((ZepTextType)i)
+            {
+            case ZepTextType::Text:
+            case ZepTextType::Heading1:
+            case ZepTextType::Heading2:
+            case ZepTextType::Heading3:
+            {
+                auto& textFont = GetFont(ZepTextType(i));
+                textFont.SetPixelHeight((int)std::min((float)ceil(textFont.GetPixelHeight() * 1.05), 800.0f));
+            }
+            default:
+            break;
+            }
+        }
+    }
 }
+
+void ZepDisplay::Smaller()
+{
+    for (int i = 0; i < (int)m_fonts.size(); i++)
+    {
+        if (m_fonts[i] != nullptr)
+        {
+            switch ((ZepTextType)i)
+            {
+            case ZepTextType::Text:
+            case ZepTextType::Heading1:
+            case ZepTextType::Heading2:
+            case ZepTextType::Heading3:
+            {
+                auto& textFont = GetFont(ZepTextType(i));
+                textFont.SetPixelHeight((int)std::max(4.0f, (float)floor(textFont.GetPixelHeight() *.95f)));
+            }
+            default:
+            break;
+            }
+        }
+    }
+}
+
+} // namespace Zep

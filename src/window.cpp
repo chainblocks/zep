@@ -804,14 +804,14 @@ void ZepWindow::UpdateMarkers()
         {
             // Swap it out for our custom flash color
             float time = float(elapsed) / marker->duration;
-            marker->alpha = sin(time * ZPI);
+            marker->SetAlpha(sin(time * ZPI));
 
             foundFlash = true;
             marker->displayType &= ~RangeMarkerDisplayType::Hidden;
         }
         else
         {
-            marker->alpha = 0.0f;
+            marker->SetAlpha(0.0f);
             marker->displayType |= RangeMarkerDisplayType::Hidden;
             victims.push_back(marker);
         }
@@ -926,7 +926,7 @@ void ZepWindow::DisplayLineBackground(SpanInfo& lineInfo, ZepSyntax* pSyntax)
         // Background and underlines
         // Track the background color for multiple overlapping markers and blend the alpha correctly by 
         // doing a mix between the previous color and the new one.
-        NVec4f backgroundColor = NVec4f(0.0f, 0.0f, 0.0f, 1.0f);
+        NVec4f backgroundColor = backColor;
 
         m_pBuffer->ForEachMarker(RangeMarkerType::All, Direction::Forward, GlyphIterator(m_pBuffer, lineInfo.lineByteRange.first), GlyphIterator(m_pBuffer, lineInfo.lineByteRange.second), [&](const std::shared_ptr<RangeMarker>& marker) {
             // Don't show hidden markers
@@ -954,8 +954,13 @@ void ZepWindow::DisplayLineBackground(SpanInfo& lineInfo, ZepSyntax* pSyntax)
                     // Fill the background of the text with the marker color
                     if (marker->displayType & RangeMarkerDisplayType::Background)
                     {
-                        backgroundColor = Mix(backgroundColor, m_pBuffer->GetTheme().GetColor(marker->GetBackgroundColor()), marker->alpha);
-                        display.DrawRectFilled(charRect, backgroundColor);
+                        auto markerBack = marker->GetBackgroundColor(cp.iterator);
+                        if (markerBack != ThemeColor::None)
+                        {
+                            auto markerBackColor = m_pBuffer->GetTheme().GetColor(markerBack);
+                            backgroundColor = Mix(backgroundColor, markerBackColor, marker->GetAlpha(cp.iterator));
+                            display.DrawRectFilled(charRect, backgroundColor);
+                        }
                     }
                 }
 

@@ -87,6 +87,9 @@ public:
     virtual ZepFont& GetFont(ZepTextType type) = 0;
     const NVec2f& GetPixelScale() const;
 
+    void Bigger();
+    void Smaller();
+
 protected:
     bool m_bRebuildLayout = false;
     std::array<std::shared_ptr<ZepFont>, (int)ZepTextType::Count> m_fonts;

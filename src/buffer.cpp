@@ -988,7 +988,7 @@ void ZepBuffer::UpdateForDelete(const GlyphIterator& startItr, const GlyphIterat
             ZLOG(INFO, "Range: " << startItr.Index() << ", " << endItr.Index() << " : mark: " << marker->GetRange().first);
 
             // It's OK to move on the first char; since that is like a shove
-            if (endItr.Index() <= (marker->GetRange().first + 1))
+            if (endItr.Index() < (marker->GetRange().first + 1))
             {
                 auto distance = std::min(endItr.Index(), marker->GetRange().first) - startItr.Index();
                 changeRecord.markerMoves.push_back(

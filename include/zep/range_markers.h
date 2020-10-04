@@ -67,9 +67,9 @@ struct RangeMarker : std::enable_shared_from_this<RangeMarker>
     bool ContainsLocation(GlyphIterator loc) const;
     bool IntersectsRange(const ByteRange& i) const;
     virtual ThemeColor GetBackgroundColor(const GlyphIterator& itr = GlyphIterator()) const;
-    virtual ThemeColor GetTextColor(const GlyphIterator& itr = GlyphIterator()) const;
+    virtual ThemeColor GetTextColor(const GlyphIterator& itr = GlyphIterator()) const ;
     virtual ThemeColor GetHighlightColor(const GlyphIterator& itr = GlyphIterator()) const;
-    virtual float GetAlpha(GlyphIterator) const;
+    virtual float GetAlpha(const GlyphIterator& itr = GlyphIterator()) const;
 
     void SetRange(ByteRange range);
     const ByteRange& GetRange() const;
@@ -90,16 +90,17 @@ public:
     std::shared_ptr<IWidget> spWidget;
     NVec2f inlineSize;
     float duration = 1.0f;
-    float alpha = 1.0f;
     Zep::timer timer;
     FlashType flashType = FlashType::Flash;
 
-private:
+protected:
     ZepBuffer& m_buffer;
     ByteRange m_range;
-    ThemeColor m_textColor = ThemeColor::Text;
-    ThemeColor m_backgroundColor = ThemeColor::Background;
-    ThemeColor m_highlightColor = ThemeColor::Background; // Used for lines around tip box, underline, etc.
+    mutable ThemeColor m_textColor = ThemeColor::Text;
+    mutable ThemeColor m_backgroundColor = ThemeColor::Background;
+    mutable ThemeColor m_highlightColor = ThemeColor::Background; // Used for lines around tip box, underline, etc.
+    mutable float alpha = 1.0f;
+
 };
 
 using tRangeMarkers = std::map<ByteIndex, std::set<std::shared_ptr<RangeMarker>>>;

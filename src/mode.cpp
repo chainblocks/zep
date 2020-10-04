@@ -854,14 +854,12 @@ bool ZepMode::GetCommand(CommandContext& context)
     }
     else if (mappedCommand == id_FontBigger)
     {
-        auto& textFont = GetEditor().GetDisplay().GetFont(ZepTextType::Text);
-        textFont.SetPixelHeight(std::min(textFont.GetPixelHeight() + 1, 200));
+        GetEditor().GetDisplay().Bigger();
         return true;
     }
     else if (mappedCommand == id_FontSmaller)
     {
-        auto& textFont = GetEditor().GetDisplay().GetFont(ZepTextType::Text);
-        textFont.SetPixelHeight(std::max(4, textFont.GetPixelHeight() - 1));
+        GetEditor().GetDisplay().Smaller();
         return true;
     }
     // Moving between splits
